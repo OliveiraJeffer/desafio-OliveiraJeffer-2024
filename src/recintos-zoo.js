@@ -33,33 +33,36 @@ class RecintosZoo {
 
         // Verificação de recintos
         this.recintos.forEach((recinto) => {
+            // Verifica se o bioma do recinto é adequado
             if (!biomas.some((bioma) => recinto.bioma.includes(bioma))) return;
 
+            // Calcula a ocupação atual do recinto
             const ocupacaoAtual = recinto.animais.reduce((acc, a) => acc + this.animais[a].tamanho, 0);
-            const ocupacaoExtra = recinto.animais.length > 0 && animal !== recinto.animais[0] ? 1 : 0;
+
+            // Considera 1 espaço extra ocupado quando há diferentes espécies no recinto
+            const ocupacaoExtra = recinto.animais.length > 0 && !recinto.animais.every(a => a === animal) ? 1 : 0;
+
+            // Calcula o espaço necessário para os novos animais
             const novoEspacoNecessario = (quantidade * tamanho) + ocupacaoExtra;
 
+            // Verifica se há espaço suficiente
             if (novoEspacoNecessario + ocupacaoAtual > recinto.tamanhoTotal) return;
 
-            // Condições do hipopotamo
-            if (animal === "HIPOPOTAMO" && !recinto.bioma.includes("savana")) return;
+            // Condições específicas
+            if (animal === "HIPOPOTAMO" && !recinto.bioma.includes("savana") && !recinto.bioma.includes("rio")) return;
             if (animal === "HIPOPOTAMO" && recinto.animais.length > 0 && !recinto.bioma.includes("rio")) return;
-
-            // Condição dos carnivoros
             if (this.carnivoro(animal) && recinto.animais.length > 0 && recinto.animais[0] !== animal) return;
-
-            // Condição do macaco
             if (animal === "MACACO" && quantidade === 1 && recinto.animais.length === 0) return;
 
-            // Verificação de conforto
-            if (!this.verificaConforto(recinto, animal, quantidade)) return;
+            // Verifica se os animais existentes são compatíveis com o novo animal
+            if (!this.verificaConforto(recinto, animal)) return;
 
-            // Calcular espaço livre
+            // Calcula o espaço livre
             const espacoLivre = recinto.tamanhoTotal - (ocupacaoAtual + novoEspacoNecessario);
             recintosViaveis.push(`Recinto ${recinto.numero} (espaço livre: ${espacoLivre} total: ${recinto.tamanhoTotal})`);
         });
 
-        // Ordenar recintos viáveis por número
+        // Ordena os recintos viáveis por número
         recintosViaveis.sort((a, b) => parseInt(a.split(' ')[1]) - parseInt(b.split(' ')[1]));
 
         return recintosViaveis.length > 0 ? { recintosViaveis } : { erro: "Não há recinto viável" };
@@ -69,7 +72,7 @@ class RecintosZoo {
         return ["LEAO", "LEOPARDO", "CROCODILO"].includes(animal);
     }
 
-    verificaConforto(recinto, novoAnimal, quantidade) {
+    verificaConforto(recinto, novoAnimal) {
         for (let animalExistente of recinto.animais) {
             if (this.carnivoro(animalExistente) && novoAnimal !== animalExistente) return false;
             if (animalExistente === "HIPOPOTAMO" && !recinto.bioma.includes("rio")) return false;
@@ -79,4 +82,3 @@ class RecintosZoo {
 }
 
 export { RecintosZoo as RecintosZoo };
-
